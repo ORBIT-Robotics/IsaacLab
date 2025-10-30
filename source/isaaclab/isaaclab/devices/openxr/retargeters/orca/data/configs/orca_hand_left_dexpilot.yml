@@ -1,0 +1,29 @@
+retargeting:
+  finger_tip_link_names:
+  - left_thumb_fingertip
+  - left_index_fingertip
+  - left_middle_fingertip
+  - left_ring_fingertip
+  - left_pinky_fingertip
+  low_pass_alpha: 0.2
+  scaling_factor: 1.0
+  target_joint_names:
+  - left_thumb_mcp
+  - left_thumb_abd
+  - left_thumb_pip
+  - left_thumb_dip
+  - left_index_abd
+  - left_index_mcp
+  - left_index_pip
+  - left_middle_abd
+  - left_middle_mcp
+  - left_middle_pip
+  - left_ring_abd
+  - left_ring_mcp
+  - left_ring_pip
+  - left_pinky_abd
+  - left_pinky_mcp
+  - left_pinky_pip
+  type: DexPilot
+  urdf_path: source/isaaclab_assets/data/robot/orca/urdf/orcahand_left.urdf
+  wrist_link_name: left_wrist_jointbody

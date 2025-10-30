@@ -1,0 +1,9 @@
+name: orbit_xr.teleop
+version: 0.1.0
+title: Orbit XR Teleoperation
+description: Teleoperation helpers that retarget OpenXR hand tracking to the ICARUS robot.
+authors:
+  - Orbit XR Developers
+asset_hashes: []
+python:
+  module: orbit_xr.tasks.teleop_env

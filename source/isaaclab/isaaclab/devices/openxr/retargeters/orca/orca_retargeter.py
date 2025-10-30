@@ -16,30 +16,48 @@ from isaaclab.markers import VisualizationMarkers, VisualizationMarkersCfg
 
 # This import exception is suppressed because gr1_t2_dex_retargeting_utils depends on pinocchio which is not available on windows
 with contextlib.suppress(Exception):
-    from .gr1_t2_dex_retargeting_utils  import GR1TR2DexRetargeting
+    from .orca_dex_retargeting_utils import OrcaDexRetargeting
 
 
 @dataclass
-class GR1T2RetargeterCfg(RetargeterCfg):
-    """Configuration for the GR1T2 retargeter."""
+class OrcaRetargeterCfg(RetargeterCfg):
+    """Configuration for the Orca retargeter."""
 
     enable_visualization: bool = False
-    num_open_xr_hand_joints: int = 100
-    hand_joint_names: list[str] | None = None  # List of robot hand joint names
+    num_open_xr_hand_joints: int = 21
+    hand_joint_names: list[str] = [
+    
+    "right_thumb_mcp",
+    "right_thumb_abd",
+    "right_thumb_pip",
+    "right_thumb_dip",
+    "right_index_abd",
+    "right_index_mcp",
+    "right_index_pip",
+    "right_middle_abd",
+    "right_middle_mcp",
+    "right_middle_pip",
+    "right_ring_abd",
+    "right_ring_mcp",
+    "right_ring_pip",
+    "right_pinky_abd",
+    "right_pinky_mcp",
+    "right_pinky_pip",
+]
 
 
-class GR1T2Retargeter(RetargeterBase):
-    """Retargets OpenXR hand tracking data to GR1T2 hand end-effector commands.
+class OrcaRetargeter(RetargeterBase):
+    """Retargets OpenXR hand tracking data to Orca hand end-effector commands.
 
-    This retargeter maps hand tracking data from OpenXR to joint commands for the GR1T2 robot's hands.
-    It handles both left and right hands, converting poses of the hands in OpenXR format joint angles for the GR1T2 robot's hands.
+    This retargeter maps hand tracking data from OpenXR to joint commands for the Orca robot's hands.
+    It handles both left and right hands, converting poses of the hands in OpenXR format joint angles for the Orca robot's hands.
     """
 
     def __init__(
         self,
-        cfg: GR1T2RetargeterCfg,
+        cfg: OrcaRetargeterCfg,
     ):
-        """Initialize the GR1T2 hand retargeter.
+        """Initialize the Orca hand retargeter.
 
         Args:
             enable_visualization: If True, visualize tracked hand joints
@@ -49,7 +67,7 @@ class GR1T2Retargeter(RetargeterBase):
         """
 
         self._hand_joint_names = cfg.hand_joint_names
-        self._hands_controller = GR1TR2DexRetargeting(self._hand_joint_names)
+        self._hands_controller = OrcaDexRetargeting(self._hand_joint_names)
 
         # Initialize visualization if enabled
         self._enable_visualization = cfg.enable_visualization
@@ -81,41 +99,52 @@ class GR1T2Retargeter(RetargeterBase):
         """
 
         # Access the left and right hand data using the enum key
-        left_hand_poses = data[OpenXRDevice.TrackingTarget.HAND_LEFT]
+        #left_hand_poses = data[OpenXRDevice.TrackingTarget.HAND_LEFT]
         right_hand_poses = data[OpenXRDevice.TrackingTarget.HAND_RIGHT]
 
-        left_wrist = left_hand_poses.get("wrist")
+        #left_wrist = left_hand_poses.get("wrist")
         right_wrist = right_hand_poses.get("wrist")
 
         if self._enable_visualization:
-            joints_position = np.zeros((self._num_open_xr_hand_joints, 3))
-
-            joints_position[::2] = np.array([pose[:3] for pose in left_hand_poses.values()])
-            joints_position[1::2] = np.array([pose[:3] for pose in right_hand_poses.values()])
-
+            XR_RIGHT_ORDER = [
+             "wrist",
+             "thumb_metacarpal", "thumb_proximal", "thumb_distal", "thumb_tip",
+             "index_metacarpal", "index_proximal", "index_intermediate", "index_distal", "index_tip",
+             "middle_metacarpal","middle_proximal","middle_intermediate","middle_distal","middle_tip",
+             "ring_metacarpal","ring_proximal","ring_intermediate","ring_distal","ring_tip",
+             "pinky_metacarpal",
+             ]
+    
+            joints_position = np.array([right_hand_poses[n][:3] for n in XR_RIGHT_ORDER], dtype=np.float32)
             self._markers.visualize(translations=torch.tensor(joints_position, device=self._sim_device))
-
         # Create array of zeros with length matching number of joint names
-        left_hands_pos = self._hands_controller.compute_left(left_hand_poses)
-        indexes = [self._hand_joint_names.index(name) for name in self._hands_controller.get_left_joint_names()]
-        left_retargeted_hand_joints = np.zeros(len(self._hands_controller.get_joint_names()))
-        left_retargeted_hand_joints[indexes] = left_hands_pos
-        left_hand_joints = left_retargeted_hand_joints
+        #left_hands_pos = self._hands_controller.compute_left(left_hand_poses)
+        #indexes = [self._hand_joint_names.index(name) for name in self._hands_controller.get_left_joint_names()]
+        #left_retargeted_hand_joints = np.zeros(len(self._hands_controller.get_joint_names()))
+        #left_retargeted_hand_joints[indexes] = left_hands_pos
+        #left_hand_joints = left_retargeted_hand_joints
 
         right_hands_pos = self._hands_controller.compute_right(right_hand_poses)
-        indexes = [self._hand_joint_names.index(name) for name in self._hands_controller.get_right_joint_names()]
-        right_retargeted_hand_joints = np.zeros(len(self._hands_controller.get_joint_names()))
+
+        idx_map = {n:i for i,n in enumerate(self._hand_joint_names)}
+        right_names = self._hands_controller.get_right_joint_names()
+        indexes = [idx_map[n] for n in right_names if n in idx_map]
+        if len(indexes) != len(right_hands_pos):
+            raise ValueError("Right-hand DOF name mismatch between retargeter and robot hand_dof_names.")
+        right_retargeted_hand_joints = np.zeros(len(self._hand_joint_names), dtype=np.float32)
+
         right_retargeted_hand_joints[indexes] = right_hands_pos
         right_hand_joints = right_retargeted_hand_joints
-        retargeted_hand_joints = left_hand_joints + right_hand_joints
+        retargeted_hand_joints =  right_hand_joints
 
         # Convert numpy arrays to tensors and concatenate them
-        left_wrist_tensor = torch.tensor(left_wrist, dtype=torch.float32, device=self._sim_device)
+        #left_wrist_tensor = torch.tensor(left_wrist, dtype=torch.float32, device=self._sim_device)
         right_wrist_tensor = torch.tensor(self._retarget_abs(right_wrist), dtype=torch.float32, device=self._sim_device)
         hand_joints_tensor = torch.tensor(retargeted_hand_joints, dtype=torch.float32, device=self._sim_device)
 
         # Combine all tensors into a single tensor
-        return torch.cat([left_wrist_tensor, right_wrist_tensor, hand_joints_tensor])
+        #return torch.cat([left_wrist_tensor, right_wrist_tensor, hand_joints_tensor])
+        return torch.cat([right_wrist_tensor, hand_joints_tensor])
 
     def _retarget_abs(self, wrist: np.ndarray) -> np.ndarray:
         """Handle absolute pose retargeting.

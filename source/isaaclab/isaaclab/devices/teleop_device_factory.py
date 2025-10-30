@@ -15,8 +15,7 @@ from isaaclab.devices import DeviceBase, DeviceCfg
 from isaaclab.devices.gamepad import Se2Gamepad, Se2GamepadCfg, Se3Gamepad, Se3GamepadCfg
 from isaaclab.devices.keyboard import Se2Keyboard, Se2KeyboardCfg, Se3Keyboard, Se3KeyboardCfg
 from isaaclab.devices.openxr.retargeters import (
-    GR1T2Retargeter,
-    GR1T2RetargeterCfg,
+    
     GripperRetargeter,
     GripperRetargeterCfg,
     Se3AbsRetargeter,
@@ -24,6 +23,8 @@ from isaaclab.devices.openxr.retargeters import (
     Se3RelRetargeter,
     Se3RelRetargeterCfg,
 )
+from isaaclab.devices.openxr.retargeters.humanoid.fourier.gr1t2_retargeter import GR1T2Retargeter, GR1T2RetargeterCfg
+from isaaclab.devices.openxr.retargeters.orca.orca_retargeter import OrcaRetargeter, OrcaRetargeterCfg
 from isaaclab.devices.retargeter_base import RetargeterBase, RetargeterCfg
 from isaaclab.devices.spacemouse import Se2SpaceMouse, Se2SpaceMouseCfg, Se3SpaceMouse, Se3SpaceMouseCfg
 
@@ -50,6 +51,7 @@ RETARGETER_MAP: dict[type[RetargeterCfg], type[RetargeterBase]] = {
     Se3RelRetargeterCfg: Se3RelRetargeter,
     GripperRetargeterCfg: GripperRetargeter,
     GR1T2RetargeterCfg: GR1T2Retargeter,
+    OrcaRetargeterCfg: OrcaRetargeter,
 }
 
 
