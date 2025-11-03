@@ -54,6 +54,12 @@ def main(args: argparse.Namespace) -> None:
     sim_cfg = sim_utils.SimulationCfg(dt=0.005)
     sim = sim_utils.SimulationContext(sim_cfg)
 
+    # Spawn default grid environment as ground plane (default_environment.usd)
+    # Uses the built-in GroundPlaneCfg which points to
+    # ISAAC_NUCLEUS_DIR/Environments/Grid/default_environment.usd
+    ground_cfg = sim_utils.GroundPlaneCfg()
+    ground_cfg.func("/World/Environment/DefaultGround", ground_cfg)
+
     # Teleop env + config
     cfg = TeleopEnvCfg()
     teleop_env = TeleopEnv(cfg)
