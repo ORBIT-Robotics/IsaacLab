@@ -5,9 +5,6 @@ from pathlib import Path
 from typing import Any
 
 from isaaclab.app import AppLauncher
-import isaaclab.sim as sim_utils
-from isaaclab.assets import Articulation
-from isaaclab.assets.articulation.articulation_cfg import ArticulationCfg as ArticulationCfgType
 
 import torch
 
@@ -16,7 +13,7 @@ from orbit_xr.tasks.teleop_env import TeleopEnv
 from orbit_xr.tasks.teleop_ik import TeleopIK, TeleopIKConfig
 
 
-def create_robot_articulation(sim: Any, cfg: TeleopEnvCfg) -> Articulation:
+def create_robot_articulation(sim: Any, cfg: TeleopEnvCfg) -> Any:
     """
     Placeholder loader: replace this with your actual robot-loading code.
 
@@ -27,6 +24,13 @@ def create_robot_articulation(sim: Any, cfg: TeleopEnvCfg) -> Articulation:
     usd_path = assets_root / "usd" / "icarus.usd"
 
     robot_prim_path = "/World/ICARUS"
+
+    # Import here to ensure SimulationApp is already instantiated
+    import isaaclab.sim as sim_utils  # noqa: WPS433
+    from isaaclab.assets.articulation.articulation_cfg import (
+        ArticulationCfg as ArticulationCfgType,  # noqa: WPS433
+    )
+    from isaaclab.assets import Articulation  # noqa: WPS433
 
     spawn_cfg = sim_utils.UsdFileCfg(usd_path=str(usd_path))
     spawn_cfg.func(robot_prim_path, spawn_cfg)
@@ -49,6 +53,9 @@ def main(args: argparse.Namespace) -> None:
     # Launch the app using IsaacLab's AppLauncher (wraps isaacsim.SimulationApp)
     app_launcher = AppLauncher(headless=args.headless)
     simulation_app = app_launcher.app
+
+    # Import Isaac Lab sim utils only after SimulationApp is created
+    import isaaclab.sim as sim_utils  # noqa: WPS433
 
     # IsaacLab SimulationContext
     sim_cfg = sim_utils.SimulationCfg(dt=0.005)
