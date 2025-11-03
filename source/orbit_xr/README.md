@@ -1,184 +1,278 @@
-# ICARUS XR Teleoperation in IsaacLab (Windows, No CloudXR)
+# ICARUS XR Teleoperation in IsaacLab (Linux, SteamVR + ALVR, No CloudXR)
 
-This guide explains how to run **ICARUS teleoperation** in IsaacLab on **Windows** using Meta Quest hand tracking via OpenXR—**without CloudXR**. It covers setup, dependencies, and step-by-step instructions, including handling DexPilot (dex_retargeting) on WSL2 and Windows.
+This guide explains how to run ICARUS teleoperation in IsaacLab on Linux (Ubuntu 22.04/24.04) using a Meta Quest via ALVR + SteamVR (OpenXR), without CloudXR. It covers setup, dependencies, step-by-step instructions, and Linux-specific troubleshooting.
 
 ---
 
 ## Table of Contents
 
 - [Overview](#overview)
-- [Prerequisites](#prerequisites)
+- [Prerequisites (Linux)](#prerequisites-linux)
 - [Project Layout](#project-layout)
 - [How It Works](#how-it-works)
 - [Running Without CloudXR](#running-without-cloudxr)
-- [DexPilot (dex_retargeting) on Windows](#dexpilot-dex_retargeting-on-windows)
-- [Step-by-Step: Running ICARUS Teleop](#step-by-step-running-icarus-teleop)
-- [Troubleshooting & Tips](#troubleshooting--tips)
+- [Step-by-Step: Running ICARUS Teleop (Linux)](#step-by-step-running-icarus-teleop-linux)
+- [DexPilot (dex_retargeting) on Linux](#dexpilot-dex_retargeting-on-linux)
+- [Troubleshooting & Tips (Linux)](#troubleshooting--tips-linux)
 - [Key Parameters Reference](#key-parameters-reference)
+- [Summary](#summary)
+- [Quick Start](#quick-start)
 
 ---
 
 ## Overview
 
-- **Live Meta Quest hand tracking** via OpenXR (Oculus/Meta Link or Air Link)
-- **End-effector (EE) pose** from right hand, mapped to ICARUS arm via Differential IK
-- **ORCA right-hand joint actuation** from XR hand keypoints
-- **No CloudXR required** (runs locally on Windows)
-- **DexPilot (dex_retargeting)** for hand retargeting (see [DexPilot on Windows](#dexpilot-dex_retargeting-on-windows))
+- Meta Quest streaming with ALVR → SteamVR as OpenXR runtime on Linux.
+- End-effector (EE) pose from controller/hand → ICARUS arm via Differential IK.
+- ORCA right-hand joint actuation from XR keypoints (via hand retargeter; DexPilot optional).
+- No CloudXR required. Works with GUI (recommended) or headless.
 
 ---
 
-## Prerequisites
+## Prerequisites (Linux)
 
-- **Windows machine**
-- **Omniverse Isaac Sim** (2023.1+ recommended)
-- **IsaacLab** (this repo) installed in the same Python environment as Isaac Sim
-- **NVIDIA GPU drivers** up to date
-- **Meta Quest headset** with:
-  - Oculus desktop app installed
-  - Connected via Link cable or Air Link
-  - Oculus OpenXR Runtime set as active (Oculus app → Settings → General → OpenXR Runtime)
-- **No CloudXR needed**
-- **Python packages**: All IsaacLab dependencies are included. For hand retargeting with DexPilot, see [DexPilot on Windows](#dexpilot-dex_retargeting-on-windows).
+- Ubuntu 22.04 / 24.04, NVIDIA GPU (RTX/Ada recommended).
+- NVIDIA drivers and Vulkan working:
+  ```bash
+  nvidia-smi
+  glxinfo -B | grep "OpenGL renderer"
+  vulkaninfo | grep -m1 deviceName
+  ```
+- Isaac Sim 2023.1+ / Isaac Lab installed. From repo root, ensure launcher is available (example):
+  ```bash
+  ls -l ./isaaclab.sh
+  # Optional: link Isaac Sim if your workflow expects it
+  ls -l _isaac_sim || ln -s /path/to/isaac-sim _isaac_sim
+  ```
+- Python env (conda/venv) for Isaac Lab.
+- Steam + SteamVR installed.
+- ALVR installed (PC server + Quest client) and paired.
+  - Set SteamVR as OpenXR Runtime: SteamVR → Settings → Developer → “Set SteamVR as OpenXR Runtime”.
+  - Verify:
+    ```bash
+    cat ~/.config/openxr/1/active_runtime.json  # should end with .../SteamVR/steamxr_linux64.json
+    ```
+- Network: Prefer PC on Ethernet; Quest on 5 GHz.
 
 ---
 
 ## Project Layout
 
-Key files for teleoperation:
+Key files for teleoperation (paths may vary slightly):
 
 ```
 source/orbit_xr/tasks/teleop_env_cfg.py      # Robot DOF names, IK, XR retargeter config
-source/orbit_xr/tasks/teleop_env.py          # OpenXR device wrapper, command splitting
+source/orbit_xr/tasks/teleop_env.py          # XR device wrapper, command splitting
 source/orbit_xr/tasks/teleop_ik.py           # Differential IK controller wrapper
 source/orbit_xr/tasks/run_teleop.py          # Main launch script
-source/isaaclab/isaaclab/devices/openxr/retargeters/orca/  # Orca retargeter & DexPilot glue
-source/isaaclab_assets/data/robot/icarus/unimanual/urdf/icarus.urdf  # ICARUS DOF names
-source/isaaclab_assets/data/robot/icarus/unimanual/usd/icarus.usd    # ICARUS robot asset
+source/orbit_xr/mappings/                    # Controller/hand → action mappings
+source/orbit_xr/retargeters/                 # Hand retargeters (e.g., ORCA/DexPilot glue)
+source/isaaclab_assets/.../icarus.urdf       # ICARUS DOF names
+source/isaaclab_assets/.../icarus.usd        # ICARUS asset
 ```
 
 ---
 
 ## How It Works
 
-1. **OpenXR Device + Retargeters**
-   - `Se3AbsRetargeter`: Converts XR hand pose to 7D EE target for the arm.
-   - `OrcaRetargeter`: Converts XR hand joints to ORCA hand DOFs (uses DexPilot if available).
+1) OpenXR device + retargeters
+- EE retargeter (e.g., Se3AbsRetargeter): XR hand/controller pose → 7D EE target.
+- Hand retargeter (e.g., OrcaRetargeter): XR hand joints → ORCA hand DOFs (DexPilot optional).
 
-2. **TeleopEnv**
-   - Polls XR device, splits retargeted command into EE pose and hand joints.
+2) TeleopEnv
+- Polls HMD/controllers/hand data and splits into EE pose + hand joints.
 
-3. **TeleopIK**
-   - Differential IK controller computes arm joint targets to reach EE pose.
+3) TeleopIK
+- Differential IK computes arm joint targets for the EE target.
 
-4. **Action Assembly**
-   - Merges arm and hand targets into a full DOF action vector for the robot.
+4) Action assembly
+- Merges arm + hand into a full DOF action and applies in Isaac Lab.
 
 ---
 
 ## Running Without CloudXR
 
-- **Connect Meta Quest** via Link cable or Air Link.
-- **Oculus desktop app** must be running.
-- **Oculus OpenXR Runtime** must be active.
-- **No CloudXR required**—everything runs locally on Windows.
+- Quest ↔ PC uses ALVR streaming over Wi‑Fi/Ethernet.
+- SteamVR runs as the OpenXR runtime on Linux.
+- No CloudXR or Meta Link (USB video) required.
 
 ---
 
-## DexPilot (dex_retargeting) on Windows
+## Step-by-Step: Running ICARUS Teleop (Linux)
 
-- **DexPilot** (dex_retargeting) is used by the Orca retargeter for accurate hand mapping.
-- If you have dex_retargeting **only on WSL2**, it is **not available** to IsaacSim running on Windows Python.
-- **Recommended:** Install dex_retargeting in your Windows Python environment (may require extra dependencies).
-- **Fallback:** Use a simpler geometric hand retargeter (e.g., DexRetargeter), or keep OrcaRetargeter and ensure your code handles missing DexPilot gracefully (hand joints will not be mapped, but arm teleop will still work).
+Order matters. Follow on each run.
 
-**Note:**  
-If DexPilot is not available, the Orca retargeter will not compute hand joints. You can still test arm teleop and IK.
+0) One-time check (OpenXR runtime):
+```bash
+cat ~/.config/openxr/1/active_runtime.json  # → steamxr_linux64.json path
+```
+
+1) Start streaming & SteamVR
+- Launch ALVR on PC → ensure the Quest shows “Streaming”.
+- From ALVR dashboard, click “Launch SteamVR”.
+- Put on the headset; you should see the SteamVR environment (SteamVR Home can be disabled).
+
+2) Run the teleop script (repo root)
+```bash
+# Activate your Isaac Lab env
+conda activate <your_env>  # or source <venv>/bin/activate
+
+# Optional: ensure Isaac Sim link (if your workflow uses it)
+ls -l _isaac_sim || ln -s /path/to/isaac-sim _isaac_sim
+
+# GUI run (recommended first time)
+./isaaclab.sh -p source/orbit_xr/tasks/run_teleop.py
+
+# Or headless (if supported by your setup)
+# ./isaaclab.sh -p source/orbit_xr/tasks/run_teleop.py --headless
+```
+
+Optional flags (only if supported by your script):
+```bash
+./isaaclab.sh -p source/orbit_xr/tasks/run_teleop.py \
+  --xr-runtime steamvr \
+  --ee-source right_controller \
+  --hand-mode controllers \
+  --ik-damping 0.05
+```
+
+3) Verify device & DOF bindings
+- Console should report XR device present and robot DOFs bound.
+- If names mismatch, edit `source/orbit_xr/tasks/teleop_env_cfg.py`.
+
+4) Use it
+- Move the right controller to drive the EE.
+- Buttons/axes are mapped in `source/orbit_xr/mappings/`.
+- For hand tracking, ensure the runtime exposes hand joints and enable the hand retargeter.
 
 ---
 
-## Step-by-Step: Running ICARUS Teleop
+## DexPilot (dex_retargeting) on Linux
 
-1. **Launch Isaac Sim Teleop Script**
-   ```powershell
-   python source/orbit_xr/tasks/run_teleop.py
-   ```
-   Add `--headless` if you do not need the GUI.
+If your hand retargeter uses DexPilot:
 
-2. **Connect Meta Quest**
-   - Wear the headset, connect via Link or Air Link.
-   - Ensure hand tracking is enabled.
+- Install in the same Python env as Isaac Lab.
 
-3. **Check OpenXR Connection**
-   - The script should detect the XR device and start producing commands.
-   - If not, check that the Oculus OpenXR runtime is active and the headset is awake.
+Option A — Submodule (recommended if the repo includes it):
+```bash
+cd /home/orbit/Desktop/IsaacLab
+git submodule sync --recursive
+git submodule update --init --recursive
+git submodule status
+```
 
-4. **Verify Robot DOF Binding**
-   - The script binds robot DOF names from `teleop_env_cfg.py` to the loaded asset.
-   - If names do not match, you will get a clear error—edit the config to fix.
+If you see an empty or broken symlink folder (e.g., dex-retargeting):
+```bash
+# Replace a plain symlink with a real submodule (or clone)
+rm -f dex-retargeting
+# As submodule:
+git submodule add https://github.com/<org>/<dex_retargeting_repo>.git dex-retargeting
+git submodule update --init --recursive
+git commit -m "Add dex-retargeting as submodule"
 
-5. **Tune IK Parameters (Optional)**
-   - Adjust `damping` in `TeleopEnvCfg.ik` if the arm is twitchy or unresponsive.
+# Or just clone:
+# git clone https://github.com/<org>/<dex_retargeting_repo>.git dex-retargeting
+```
+
+Then install it (editable recommended for development):
+```bash
+pip install -e dex-retargeting
+```
+
+Option B — Local repo
+```bash
+git clone https://github.com/<org>/<dex_retargeting_repo>.git
+pip install -e ./<dex_retargeting_repo>
+```
+
+If DexPilot is unavailable, use a geometric hand retargeter fallback or handle absence gracefully (arm teleop still works; only hand joints are skipped).
 
 ---
 
-## Troubleshooting & Tips
+## Troubleshooting & Tips (Linux)
 
-- **XR device returns None**
-  - Make sure Oculus runtime is the active OpenXR provider.
-  - Headset must be awake and tracking hands.
+A) SteamVR / OpenXR
+- Set runtime: SteamVR → Settings → Developer → “Set SteamVR as OpenXR Runtime”.
+- Verify:
+  ```bash
+  cat ~/.config/openxr/1/active_runtime.json
+  ```
+- “Some Add-ons Blocked” after a crash:
+  - SteamVR → Manage Add-ons: enable ALVR, disable extras; turn OFF SteamVR Home.
+- Clean restart if compositor is stuck:
+  ```bash
+  pkill -f vrcompositor ; pkill -f vrserver ; pkill -f steam
+  steam &
+  ```
+- Launch option workaround (fix certain black-screen cases):
+  - Steam → Library → SteamVR → Properties → Launch Options:
+    ```
+    /home/<USER>/.steam/steam/steamapps/common/SteamVR/bin/vrmonitor.sh %command%
+    ```
 
-- **DexPilot import errors**
-  - Install dex_retargeting in your Windows Python environment.
-  - Or, switch to a non-optimizer hand retargeter in `TeleopEnvCfg`.
+B) ALVR stream black but “Streaming”
+- Use H.264 (NVENC), 72 Hz, Constant 37–45 Mbps.
+- Confirm NVENC in use while streaming:
+  ```bash
+  nvidia-smi --query-gpu=encoder.stats.sessionCount,encoder.stats.averageFps --format=csv
+  ```
+- Check listeners:
+  ```bash
+  ss -lntp | grep 8082   # ALVR Web UI (TCP)
+  ss -lunp | grep 9944   # ALVR stream (UDP)
+  ```
 
-- **DOF name mismatches**
-  - Compare `TeleopEnvCfg.robot.*` DOF lists with `robot.joint_names` at runtime.
-  - Fix names in `teleop_env_cfg.py` as needed.
+C) No menu / scenery only
+- Use the left controller menu/system button for the SteamVR dashboard.
+- In ALVR client first-run, disable “Only touch” so gestures map to buttons.
 
-- **Action tensor type**
-  - `robot.set_joint_position_target` expects a `torch.Tensor`. The code converts from numpy to torch on the configured device.
+D) Isaac Lab specifics
+- DOF mismatches: compare `TeleopEnvCfg.robot.*` with your asset’s joint names and fix the config.
+- IK tuning: increase `damping` for stability (e.g., 0.05 → 0.1), decrease for responsiveness.
+
+E) Network
+- Prefer PC on Ethernet, Quest on 5 GHz. If discovery fails, connect via manual IP in ALVR.
 
 ---
 
 ## Key Parameters Reference
 
-- **Arm DOF names** (`TeleopEnvCfg.robot.arm_dof_names`)
-  - Example:  
-    `["Revolute 1", "Revolute 3", "Revolute 9", "Revolute 20", "Revolute 26", "right_wrist"]`
-  - Source: `icarus.urdf`
-
-- **Hand DOF names** (`TeleopEnvCfg.robot.hand_dof_names`)
-  - Example:  
-    `["right_thumb_mcp", ..., "right_pinky_pip"]`
-
-- **EE retargeter** (`TeleopEnvCfg.device.ee_retargeter`)
-  - `Se3AbsRetargeter` config (right hand, wrist position, etc.)
-
-- **Hand retargeter** (`TeleopEnvCfg.device.hand_retargeter`)
-  - `OrcaRetargeter` config (uses DexPilot if available)
-
-- **IK damping** (`TeleopIKConfig.damping`)
-  - Damped least-squares lambda for IK (start at `0.05`, tune as needed)
-
----
-
-## What If DexPilot Is Not Available on Windows?
-
-- In `TeleopEnvCfg`, temporarily use a simpler hand retargeter or ensure OrcaRetargeter handles missing DexPilot.
-- Arm teleop and IK will still work; only optimizer-based hand mapping will be skipped.
-- To enable full hand teleop, install `dex_retargeting` in your Windows Python environment.
+- Arm DOF names (`TeleopEnvCfg.robot.arm_dof_names`)
+  - Example (adapt to your asset):
+    ```
+    ["shoulder_yaw", "shoulder_pitch", "shoulder_roll",
+     "elbow_pitch", "wrist_pitch", "wrist_yaw"]
+    ```
+- Hand DOF names (`TeleopEnvCfg.robot.hand_dof_names`)
+  - Match your ORCA hand joint list.
+- EE retargeter (`TeleopEnvCfg.device.ee_retargeter`)
+  - Se3AbsRetargeter (source = right controller/hand).
+- Hand retargeter (`TeleopEnvCfg.device.hand_retargeter`)
+  - OrcaRetargeter (DexPilot optional).
+- IK damping (`TeleopIKConfig.damping`)
+  - Start at 0.05; tune 0.01–0.2 based on stability.
 
 ---
 
 ## Summary
 
-- **No CloudXR needed:** Everything runs locally on Windows.
-- **Meta Quest hand tracking** via OpenXR.
-- **ICARUS arm** is controlled by Differential IK.
-- **ORCA hand** is mapped via OrcaRetargeter (DexPilot required for full mapping).
-- **Troubleshoot** by checking OpenXR runtime, DOF names, and Python dependencies.
+- Linux path: ALVR (Quest) → SteamVR (OpenXR) → Isaac Lab. No CloudXR required.
+- ICARUS arm via Differential IK; ORCA hand via retargeter (DexPilot optional).
+- If stuck: verify OpenXR runtime, enable ALVR add-on, check NVENC stats, confirm ALVR ports, fix DOF names.
 
 ---
 
-**For further details, see the code and configs in `source/orbit_xr/tasks/`.**
+## Quick Start
+
+```bash
+# 1) Ensure SteamVR is OpenXR runtime
+cat ~/.config/openxr/1/active_runtime.json
+
+# 2) Start ALVR and click "Launch SteamVR"
+
+# 3) Run teleop from repo root
+conda activate <your_env>
+cd /home/orbit/Desktop/IsaacLab
+ls -l _isaac_sim || ln -s /path/to/isaac-sim _isaac_sim
+./isaaclab.sh -p source/orbit_xr/tasks/run_teleop.py
+```
