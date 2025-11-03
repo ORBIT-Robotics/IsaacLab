@@ -6,7 +6,7 @@
 import contextlib
 import numpy as np
 import torch
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import isaaclab.sim as sim_utils
 import isaaclab.utils.math as PoseUtils
@@ -25,25 +25,26 @@ class OrcaRetargeterCfg(RetargeterCfg):
 
     enable_visualization: bool = False
     num_open_xr_hand_joints: int = 21
-    hand_joint_names: list[str] = [
-    
-    "right_thumb_mcp",
-    "right_thumb_abd",
-    "right_thumb_pip",
-    "right_thumb_dip",
-    "right_index_abd",
-    "right_index_mcp",
-    "right_index_pip",
-    "right_middle_abd",
-    "right_middle_mcp",
-    "right_middle_pip",
-    "right_ring_abd",
-    "right_ring_mcp",
-    "right_ring_pip",
-    "right_pinky_abd",
-    "right_pinky_mcp",
-    "right_pinky_pip",
-]
+    hand_joint_names: list[str] = field(
+        default_factory=lambda: [
+            "right_thumb_mcp",
+            "right_thumb_abd",
+            "right_thumb_pip",
+            "right_thumb_dip",
+            "right_index_abd",
+            "right_index_mcp",
+            "right_index_pip",
+            "right_middle_abd",
+            "right_middle_mcp",
+            "right_middle_pip",
+            "right_ring_abd",
+            "right_ring_mcp",
+            "right_ring_pip",
+            "right_pinky_abd",
+            "right_pinky_mcp",
+            "right_pinky_pip",
+        ]
+    )
 
 
 class OrcaRetargeter(RetargeterBase):

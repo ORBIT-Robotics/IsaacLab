@@ -104,10 +104,12 @@ keywords = ["experience", "app", "usd"]
 
 # Load Isaac Lab extensions last
 "isaaclab" = {order = 1000}
-"isaaclab_assets" = {order = 1000}
-"isaaclab_tasks" = {order = 1000}
-"isaaclab_mimic" = {order = 1000}
-"isaaclab_rl" = {order = 1000}
+# Avoid syncing untrusted remote isaaclab_assets extension; load local package only
+# "isaaclab_assets" = {order = 1000}
+# Disable optional Lab extensions that depend on isaaclab_assets
+# "isaaclab_tasks" = {order = 1000}
+# "isaaclab_mimic" = {order = 1000}
+# "isaaclab_rl" = {order = 1000}
 
 [settings]
 exts."omni.kit.material.library".ui_show_list = [
