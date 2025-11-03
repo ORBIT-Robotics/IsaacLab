@@ -2,15 +2,25 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from isaaclab.app import AppLauncher
 
+# Ensure the repository's `source` directory is on sys.path so modules like
+# `orbit_xr` are importable even after SimulationApp initialization.
+import sys
+SOURCE_DIR = Path(__file__).resolve().parents[2]
+if str(SOURCE_DIR) not in sys.path:
+    sys.path.insert(0, str(SOURCE_DIR))
+
+# Provide type-only imports so editors (Pylance) know these names
+# without importing Omniverse/Isaac at runtime before SimulationApp exists.
+if TYPE_CHECKING:  # pragma: no cover
+    from orbit_xr.tasks.teleop_env_cfg import TeleopEnvCfg
+
 import torch
 
-from orbit_xr.tasks.teleop_env_cfg import TeleopEnvCfg
-from orbit_xr.tasks.teleop_env import TeleopEnv
-from orbit_xr.tasks.teleop_ik import TeleopIK, TeleopIKConfig
+# Defer all other imports (that touch omni/isaacsim) until after SimulationApp instantiation
 
 
 def create_robot_articulation(sim: Any, cfg: TeleopEnvCfg) -> Any:
@@ -53,6 +63,11 @@ def main(args: argparse.Namespace) -> None:
     # Launch the app using IsaacLab's AppLauncher (wraps isaacsim.SimulationApp)
     app_launcher = AppLauncher(headless=args.headless)
     simulation_app = app_launcher.app
+
+    # Import modules that rely on Omniverse/Isaac after SimulationApp is created
+    from orbit_xr.tasks.teleop_env_cfg import TeleopEnvCfg  # noqa: WPS433
+    from orbit_xr.tasks.teleop_env import TeleopEnv  # noqa: WPS433
+    from orbit_xr.tasks.teleop_ik import TeleopIK, TeleopIKConfig  # noqa: WPS433
 
     # Import Isaac Lab sim utils only after SimulationApp is created
     import isaaclab.sim as sim_utils  # noqa: WPS433

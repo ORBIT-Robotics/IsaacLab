@@ -203,14 +203,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="silver"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
@@ -223,14 +223,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="-0.0024 -0.082479 -0.01655"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/connector_link2_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/connector_link2_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="black"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="-0.0024 -0.082479 -0.01655"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/connector_link2_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/connector_link2_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
@@ -243,14 +243,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="-0.0228 0.004521 -0.01655"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/motor2_link3_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/motor2_link3_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="silver"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="-0.0228 0.004521 -0.01655"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/motor2_link3_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/motor2_link3_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
@@ -263,14 +263,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="-0.0315 0.004521 -0.01655"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/uaconnector_link4_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/uaconnector_link4_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="black"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="-0.0315 0.004521 -0.01655"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/uaconnector_link4_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/uaconnector_link4_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
@@ -283,14 +283,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="-0.0 0.004521 0.05545"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/case_link5_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/case_link5_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="black"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="-0.0 0.004521 0.05545"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/case_link5_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/case_link5_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
@@ -303,14 +303,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="-0.0 0.004521 0.125"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/motor3_link6_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/motor3_link6_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="silver"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="-0.0 0.004521 0.125"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/motor3_link6_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/motor3_link6_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
@@ -323,14 +323,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="-0.0 0.004521 0.1325"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/slot_link7_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/slot_link7_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="black"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="-0.0 0.004521 0.1325"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/slot_link7_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/slot_link7_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
@@ -343,14 +343,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="-0.0 0.004521 0.155"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/baringattacher_link8_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/baringattacher_link8_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="black"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="-0.0 0.004521 0.155"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/baringattacher_link8_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/baringattacher_link8_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
@@ -363,14 +363,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="-0.0 0.004521 0.155"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/bearingouter_link10_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/bearingouter_link10_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="silver"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="-0.0 0.004521 0.155"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/bearingouter_link10_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/bearingouter_link10_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
@@ -383,14 +383,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="-0.0 0.004521 0.169"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/bearinginner_link9_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/bearinginner_link9_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="silver"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="-0.0 0.004521 0.169"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/bearinginner_link9_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/bearinginner_link9_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
@@ -403,14 +403,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="-0.0 0.004521 0.17"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/frame1_link11_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/frame1_link11_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="black"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="-0.0 0.004521 0.17"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/frame1_link11_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/frame1_link11_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
@@ -423,14 +423,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="-0.112386 -0.027458 0.259767"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/frame2_link12_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/frame2_link12_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="black"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="-0.112386 -0.027458 0.259767"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/frame2_link12_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/frame2_link12_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
@@ -443,14 +443,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="0.0 0.034021 0.2085"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/motor4_link13_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/motor4_link13_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="silver"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0.0 0.034021 0.2085"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/motor4_link13_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/motor4_link13_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
@@ -463,14 +463,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="0.0 -0.034458 0.33"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/bearingleft_link16_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/bearingleft_link16_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="silver"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0.0 -0.034458 0.33"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/bearingleft_link16_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/bearingleft_link16_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
@@ -483,14 +483,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="0.0 0.004521 0.36"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/motor5_link17_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/motor5_link17_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="silver"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0.0 0.004521 0.36"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/motor5_link17_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/motor5_link17_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
@@ -503,14 +503,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="0.0 0.004521 0.381"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/outerbearing_link18_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/outerbearing_link18_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="silver"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0.0 0.004521 0.381"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/outerbearing_link18_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/outerbearing_link18_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
@@ -523,14 +523,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="0.0 0.0365 0.33"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/bearingright_link14_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/bearingright_link14_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="silver"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0.0 0.0365 0.33"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/bearingright_link14_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/bearingright_link14_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
@@ -543,14 +543,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="0.0 0.0435 0.33"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/elbowconnector_link15_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/elbowconnector_link15_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="black"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0.0 0.0435 0.33"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/elbowconnector_link15_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/elbowconnector_link15_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
@@ -563,14 +563,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="0.0 0.004521 0.395"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/innerbearing_link20_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/innerbearing_link20_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="silver"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0.0 0.004521 0.395"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/innerbearing_link20_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/innerbearing_link20_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
@@ -583,14 +583,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="0.0 0.004521 0.396"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/handconnector_link21_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/handconnector_link21_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="black"/>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0.0 0.004521 0.396"/>
       <geometry>
-        <mesh filename="package://icarus_urdf_v2_copy_description/meshes/handconnector_link21_1.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="file:///home/orbit/ros2_ws/src/icarus_urdf_v2_copy_description/meshes/handconnector_link21_1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
