@@ -67,7 +67,7 @@ else:
 # After SimulationApp creation
 import sys
 from pathlib import Path
-REPO_SOURCE_DIR = Path(__file__).resolve().parents[3]
+REPO_SOURCE_DIR = Path(__file__).resolve().parents[2]
 if str(REPO_SOURCE_DIR) not in sys.path:
     sys.path.insert(0, str(REPO_SOURCE_DIR))
 ```
@@ -94,8 +94,6 @@ prim_utils.create_prim(f"{ground_prim}/Plane", "Plane", translation=(0.0, 0.0, 0
 prim_utils.set_prim_property(f"{ground_prim}/Plane", "xformOp:scale", (100.0, 100.0, 1.0))
 ```
 
-This avoids any Nucleus/content dependencies and yields a readable, stable background.
-
 ---
 
 ## 4) Target prim not reacting to hide/delete
@@ -109,7 +107,6 @@ This avoids any Nucleus/content dependencies and yields a readable, stable backg
 ### Fix: Spawn without Fabric cloning
 
 ```python
-# follow_target.py
 sim_utils.CuboidCfg(
     size=(0.15, 0.15, 0.15),
     visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(1.0, 0.2, 0.2)),
@@ -118,7 +115,7 @@ sim_utils.CuboidCfg(
     target_cfg,
     translation=(0.6, 0.0, 0.9),
     orientation=(1.0, 0.0, 0.0, 0.0),
-    clone_in_fabric=False,   # the key line
+    clone_in_fabric=False,
 )
 ```
 
@@ -135,7 +132,6 @@ sim_utils.CuboidCfg(
 ### Fix: Sublayer the robot USD
 
 ```python
-# follow_target.py
 from isaacsim.core.utils.stage import get_current_stage
 
 stage = get_current_stage()
@@ -144,14 +140,11 @@ usd_path = str(IKARUS_USD_PATH)
 if usd_path not in root_layer.subLayerPaths:
     root_layer.subLayerPaths.append(usd_path)
 
-# Then auto‑detect prim
 for candidate in ["/icarus_orca", "/Root/icarus_orca", "/ICARUS/icarus_orca"]:
     if stage.GetPrimAtPath(candidate).IsValid():
         prim_path = candidate
         break
 ```
-
-Sublayering preserves the asset’s absolute paths in the composed stage.
 
 ---
 
@@ -166,7 +159,6 @@ Sublayering preserves the asset’s absolute paths in the composed stage.
 ### Fix
 
 ```python
-# follow_target.py
 pos, quat = positions[0], orientations[0]
 if isinstance(pos, torch.Tensor):
     pos = pos.detach().cpu().numpy()
@@ -177,117 +169,73 @@ pose = np.concatenate([pos.astype(np.float32), quat.astype(np.float32)])
 
 ---
 
-## 7) IK was unstable and didn’t track the cube
+## 7) IK stability fixes
 
-### Symptoms
-- Wrist shakes; arm doesn’t converge; moving the cube barely changes behavior.
+### Problems observed
+- Wrist oscillates wildly; arm doesn’t converge to the cube; fingers jitter although we’re not commanding them.
 
-### Root Causes
-1. Frame mismatch: target pose given in world frame while Jacobian/current EE were in base frame.
-2. End‑effector link mismatch: used a wrist helper link instead of the rigid palm.
-3. Large per‑step deltas near singularities caused oscillations.
-4. Jacobian body index heuristic was wrong for our articulation ordering.
-
-### Fixes (all applied)
-
-- Use the palm as the EE link:
-
-```python
-# follow_target.py
-IKARUS_EE_LINK = "right_palm"
-```
-
-- Transform target pose from world → base before IK:
+### Causes & Fixes
+1. **Frame mismatch** — target provided in world frame, Jacobian/current EE in base frame.
+   - Convert target pose from world → base before calling the controller.
+2. **Wrong EE link** — using `right_wrist_jointbody` instead of the rigid palm.
+   - Set `IKARUS_EE_LINK = "right_palm"`.
+3. **Large per-step deltas** — DLS solution can jump violently near singularities.
+   - Clamp per-step joint change via `max_step` (default 0.05 rad).
+4. **Jacobian body index heuristic** — use the EE body index directly instead of `ee_id - 1`.
+5. **Orientation tracking not needed** — we only care about position, so run the controller in `command_type="position"` mode.
 
 ```python
-# ikarus_ik.py (inside solve)
-# root_pos_w, root_quat_w, ee_pos_b, ee_quat_b, jacobian_b already computed
-
-target_pos_w = torch.tensor(target_pose[:3], device=self._device).unsqueeze(0)
-target_quat_w = torch.tensor(target_pose[3:], device=self._device).unsqueeze(0)
-
-target_pos_b, target_quat_b = math_utils.subtract_frame_transforms(
-    root_pos_w, root_quat_w, target_pos_w, target_quat_w
-)
-
-cmd = torch.cat([target_pos_b, target_quat_b], dim=-1)
-self._controller.set_command(cmd)
-```
-
-- Use the resolved EE body index directly for the Jacobian:
-
-```python
-self._ee_body_id = ee_ids[0]
-self._jacobian_body_id = self._ee_body_id
-jacobian_w = self._articulation.root_physx_view.get_jacobians()[:, self._jacobian_body_id, :, self._arm_joint_ids]
-```
-
-- Clamp per‑step joint change:
-
-```python
-# Config
 @dataclass
 class TeleopIKConfig:
     ...
-    max_step: float = 0.05  # rad per step
+    command_type: Literal["position", "pose"] = "position"
+    max_step: float = 0.05
 
-# Compute
-q_des = self._controller.compute(ee_pos_b, ee_quat_b, jacobian_b, joint_pos)
+# In solve()
+target_pos_b, target_quat_b = math_utils.subtract_frame_transforms(...)
+if self._cfg.command_type == "position":
+    self._controller.set_command(target_pos_b, ee_pos=ee_pos_b, ee_quat=ee_quat_b)
+else:
+    target_tensor = torch.cat([target_pos_b, target_quat_b], dim=-1)
+    self._controller.set_command(target_tensor)
+
+q_des = self._controller.compute(...)
 dq = torch.clamp(q_des - joint_pos, min=-self._max_step, max=self._max_step)
 q_next = joint_pos + dq
-return q_next[0].detach().cpu().numpy()
 ```
 
-- Keep DLS damping modest (e.g., `lambda_val=0.05`) and consider increasing if you still see chattering.
-
----
-
-## 8) Minimal, robust main loop patterns
-
-### Under Kit (–p): register a per‑frame callback
+Update the joint target composition so hand DOFs stay untouched:
 
 ```python
-kit_app = _maybe_get_kit_app()
-stream = kit_app.get_update_event_stream()
-stream.create_subscription_to_pop(_on_frame)  # _on_frame calls sim.step(), solves IK, applies joint targets
-```
-
-### Standalone: own the SimulationApp
-
-```python
-simulation_app = SimulationApp({"headless": False})
-try:
-    while simulation_app.is_running():
-        simulation_app.update()
-        _on_frame()
-finally:
-    simulation_app.close()
+def compose_joint_targets(arm_joint_targets: np.ndarray) -> torch.Tensor:
+    joint_targets = robot.data.joint_pos.clone()
+    arm_tensor = torch.as_tensor(arm_joint_targets, dtype=torch.float32, device=joint_targets.device)
+    joint_targets[:, arm_joint_ids] = arm_tensor.unsqueeze(0)
+    return joint_targets
 ```
 
 ---
 
-## 9) Quick sanity checklist
+## 8) Quick sanity checklist
 
-- Launch:
-  - Kit UI: `./isaaclab.sh -p source/orbit_xr/tasks/follow_target/run_follow_target.py`
-  - Standalone: `./_isaac_sim/python.sh source/orbit_xr/tasks/follow_target/run_follow_target.py`
-- Ground: simple `Plane` + `DistantLight`, no external dependencies.
-- Target cube: spawned with `clone_in_fabric=False`, hide/delete works.
-- Robot asset: sublayered; prim path auto‑detected (e.g., `/Root/icarus_orca`).
-- Poses: always convert torch CUDA tensors to CPU before NumPy.
-- IK: target ↦ base frame, EE=`right_palm`, Jacobian index = EE body, clamp per‑step Δq.
+- Launch under Kit with `./isaaclab.sh -p source/orbit_xr/tasks/follow_target/run_follow_target.py`.
+- Ground plane = plain Plane + DistantLight.
+- Target cube spawned with `clone_in_fabric=False`.
+- Robot USD added as a sublayer; prim path auto-detected (e.g., `/Root/icarus_orca`).
+- Always convert torch CUDA tensors to CPU/NumPy when leaving the sim world.
+- IK config: `command_type="position"`, `max_step≈0.03–0.05`, DLS damping tuned (start at 0.05).
+- Compose joint targets from the current joint state so uncommanded DOFs (fingers) stay put.
 
-If you still see instability, try:
-- Increase DLS damping (e.g., 0.1–0.2).
+If instability persists:
+- Increase DLS damping (0.1–0.2).
 - Reduce `max_step` (e.g., 0.02) for smoother motion.
-- Switch to `ik_method="svd"` and set `min_singular_value=1e-3`.
+- Switch IK method to `svd` with a higher `min_singular_value`.
 
 ---
 
-This guide reflects the exact fixes encoded in:
+This guide mirrors the fixes in:
 - `source/orbit_xr/tasks/follow_target/run_follow_target.py`
 - `source/orbit_xr/tasks/follow_target/follow_target.py`
 - `source/orbit_xr/tasks/ikarus_ik.py`
 
-Use the code snippets above when wiring new tasks or controllers to avoid the same pitfalls.
-
+Use the snippets above whenever you wire new tasks/controllers to avoid repeating these pitfalls.
