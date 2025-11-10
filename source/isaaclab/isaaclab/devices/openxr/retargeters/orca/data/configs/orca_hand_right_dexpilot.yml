@@ -25,6 +25,5 @@ retargeting:
   - right_pinky_mcp
   - right_pinky_pip
   type: DexPilot
-  urdf_path: source/isaaclab_assets/data/robot/orca/urdf/orcahand_right.urdf
+  urdf_path: /home/orbit/Desktop/IsaacLab/source/isaaclab_assets/data/robot/orca/urdf/orcahand_right.urdf
   wrist_link_name: right_wrist_jointbody
-

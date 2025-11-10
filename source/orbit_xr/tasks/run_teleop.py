@@ -4,6 +4,8 @@ import argparse
 from pathlib import Path
 from typing import Any, TYPE_CHECKING
 
+import numpy as np
+
 from isaaclab.app import AppLauncher
 
 # Ensure the repository's `source` directory is on sys.path so modules like
@@ -12,6 +14,14 @@ import sys
 SOURCE_DIR = Path(__file__).resolve().parents[2]
 if str(SOURCE_DIR) not in sys.path:
     sys.path.insert(0, str(SOURCE_DIR))
+
+# Isaac Sim 5.1 ships XR extensions that still reference NumPy 1.x dtypes.
+# NumPy 2.0 removed aliases like np.float_ / np.complex_. Re-introduce them so
+# omni.kit.xr.* imports succeed when running with newer NumPy builds.
+if not hasattr(np, "float_"):
+    np.float_ = np.float64  # type: ignore[attr-defined]
+if not hasattr(np, "complex_"):
+    np.complex_ = np.complex128  # type: ignore[attr-defined]
 
 # Provide type-only imports so editors (Pylance) know these names
 # without importing Omniverse/Isaac at runtime before SimulationApp exists.
@@ -30,7 +40,7 @@ def create_robot_articulation(sim: Any, cfg: TeleopEnvCfg) -> Any:
     Return an isaaclab.assets.articulation.Articulation positioned and ready in the scene.
     The 'sim' type is intentionally Any to avoid SimulationContext type mismatches across packages.
     """
-    assets_root = Path(__file__).resolve().parents[3] / "isaaclab_assets" / "data" / "robot" / "icarus" / "unimanual"
+    assets_root = Path(__file__).resolve().parents[3] / "source" / "isaaclab_assets" / "data" / "robot" / "icarus" / "unimanual"
     usd_path = assets_root / "usd" / "icarus.usd"
 
     robot_prim_path = "/World/ICARUS"
@@ -41,9 +51,18 @@ def create_robot_articulation(sim: Any, cfg: TeleopEnvCfg) -> Any:
         ArticulationCfg as ArticulationCfgType,  # noqa: WPS433
     )
     from isaaclab.assets import Articulation  # noqa: WPS433
+    from isaaclab.actuators import ImplicitActuatorCfg  # noqa: WPS433
 
     spawn_cfg = sim_utils.UsdFileCfg(usd_path=str(usd_path))
     spawn_cfg.func(robot_prim_path, spawn_cfg)
+
+    def _pattern(name: str) -> str:
+        # Isaac assets often use underscores in joint names; allow config with spaces
+        sanitized = name.replace(" ", "_")
+        return f"^{sanitized}$"
+
+    arm_joint_patterns = [_pattern(name) for name in cfg.robot.arm_dof_names]
+    hand_joint_patterns = [_pattern(name) for name in cfg.robot.hand_dof_names]
 
     robot_cfg = ArticulationCfgType(
         prim_path=robot_prim_path,
@@ -54,6 +73,23 @@ def create_robot_articulation(sim: Any, cfg: TeleopEnvCfg) -> Any:
             joint_pos={".*": 0.0},
             joint_vel={".*": 0.0},
         ),
+        actuators={
+            "arm": ImplicitActuatorCfg(
+                joint_names_expr=arm_joint_patterns,
+                effort_limit=torch.inf,
+                velocity_limit=torch.inf,
+                stiffness=None,
+                damping=None,
+                armature=0.0,
+            ),
+            "hand": ImplicitActuatorCfg(
+                joint_names_expr=hand_joint_patterns,
+                effort_limit=None,
+                velocity_limit=None,
+                stiffness=None,
+                damping=None,
+            ),
+        },
     )
 
     return Articulation(cfg=robot_cfg)
@@ -61,7 +97,7 @@ def create_robot_articulation(sim: Any, cfg: TeleopEnvCfg) -> Any:
 
 def main(args: argparse.Namespace) -> None:
     # Launch the app using IsaacLab's AppLauncher (wraps isaacsim.SimulationApp)
-    app_launcher = AppLauncher(headless=args.headless)
+    app_launcher = AppLauncher(args)
     simulation_app = app_launcher.app
 
     # Import modules that rely on Omniverse/Isaac after SimulationApp is created
@@ -76,18 +112,40 @@ def main(args: argparse.Namespace) -> None:
     sim_cfg = sim_utils.SimulationCfg(dt=0.005)
     sim = sim_utils.SimulationContext(sim_cfg)
 
+    import isaacsim.core.utils.prims as prim_utils  # noqa: WPS433
+    from pxr import Gf  # noqa: WPS433
+
     # Spawn default grid environment as ground plane (default_environment.usd)
     # Uses the built-in GroundPlaneCfg which points to
     # ISAAC_NUCLEUS_DIR/Environments/Grid/default_environment.usd
+    ground_prim = "/World/Environment/DefaultGround"
     ground_cfg = sim_utils.GroundPlaneCfg()
-    ground_cfg.func("/World/Environment/DefaultGround", ground_cfg)
+    try:
+        ground_cfg.func(ground_prim, ground_cfg)
+    except FileNotFoundError:
+        prim_utils.create_prim(ground_prim, "Xform", translation=(0.0, 0.0, 0.0))
+        prim_utils.create_prim(
+            f"{ground_prim}/Plane",
+            "Plane",
+            translation=(0.0, 0.0, 0.0),
+            attributes={"size": Gf.Vec2f(100.0, 100.0)},
+        )
+    else:
+        if not prim_utils.is_prim_path_valid(f"{ground_prim}/Environment"):
+            prim_utils.create_prim(
+                f"{ground_prim}/Plane",
+                "Plane",
+                translation=(0.0, 0.0, 0.0),
+                attributes={"size": Gf.Vec2f(100.0, 100.0)},
+            )
 
     # Teleop env + config
     cfg = TeleopEnvCfg()
     teleop_env = TeleopEnv(cfg)
 
-    # Load robot and bind DOF order for arm/hand indices
+    # Load robot, perform an initial reset to initialize PhysX handles, and bind DOFs
     robot = create_robot_articulation(sim, cfg)
+    sim.reset()
     teleop_env.bind_robot_dofs(robot.joint_names)
 
     # Differential IK wrapper
@@ -129,5 +187,6 @@ def main(args: argparse.Namespace) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--headless", action="store_true")
-    main(parser.parse_args())
+    AppLauncher.add_app_launcher_args(parser)
+    args = parser.parse_args()
+    main(args)

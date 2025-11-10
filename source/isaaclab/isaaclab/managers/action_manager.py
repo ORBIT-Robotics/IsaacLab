@@ -19,13 +19,18 @@ from typing import TYPE_CHECKING, Any
 import omni.kit.app
 
 from isaaclab.assets import AssetBase
-from isaaclab.envs.utils.io_descriptors import GenericActionIODescriptor
-
 from .manager_base import ManagerBase, ManagerTermBase
 from .manager_term_cfg import ActionTermCfg
 
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedEnv
+
+
+def _make_action_io_descriptor():
+    """Lazy importer to avoid circular dependency on isaaclab.envs."""
+    from isaaclab.envs.utils.io_descriptors import GenericActionIODescriptor
+
+    return GenericActionIODescriptor()
 
 
 class ActionTerm(ManagerTermBase):
@@ -52,7 +57,7 @@ class ActionTerm(ManagerTermBase):
         super().__init__(cfg, env)
         # parse config to obtain asset to which the term is applied
         self._asset: AssetBase = self._env.scene[self.cfg.asset_name]
-        self._IO_descriptor = GenericActionIODescriptor()
+        self._IO_descriptor = _make_action_io_descriptor()
         self._export_IO_descriptor = True
 
         # add handle for debug visualization (this is set to a valid handle inside set_debug_vis)

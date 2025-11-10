@@ -15,15 +15,12 @@ from isaaclab.devices import DeviceBase, DeviceCfg
 from isaaclab.devices.gamepad import Se2Gamepad, Se2GamepadCfg, Se3Gamepad, Se3GamepadCfg
 from isaaclab.devices.keyboard import Se2Keyboard, Se2KeyboardCfg, Se3Keyboard, Se3KeyboardCfg
 from isaaclab.devices.openxr.retargeters import (
-    
     GripperRetargeter,
     GripperRetargeterCfg,
     Se3AbsRetargeter,
     Se3AbsRetargeterCfg,
     Se3RelRetargeter,
     Se3RelRetargeterCfg,
-    UnitreeG1Retargeter,
-    UnitreeG1RetargeterCfg,
 )
 from isaaclab.devices.openxr.retargeters.humanoid.fourier.gr1t2_retargeter import GR1T2Retargeter, GR1T2RetargeterCfg
 from isaaclab.devices.openxr.retargeters.orca.orca_retargeter import OrcaRetargeter, OrcaRetargeterCfg

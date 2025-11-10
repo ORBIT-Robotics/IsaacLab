@@ -29,15 +29,15 @@ DEFAULT_ORCA_HAND_JOINTS: List[str] = [
 
 @dataclass
 class TeleopRobotCfg:
-    ee_link_name: str = "right_hand_joint"
+    ee_link_name: str = "right_palm"
     base_link_name: str = "base_link"
     arm_dof_names: List[str] = field(
         default_factory=lambda: [
-            "Revolute 1",
-            "Revolute 3",
-            "Revolute 9",
-            "Revolute 20",
-            "Revolute 26",
+            "Revolute_1",
+            "Revolute_3",
+            "Revolute_9",
+            "Revolute_20",
+            "Revolute_26",
             "right_wrist",
         ]
     )

@@ -2,13 +2,37 @@
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
+# Copyright (c) 2022-2025, The Isaac Lab Project Developers.
+# SPDX-License-Identifier: BSD-3-Clause
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from dataclasses import MISSING
 
-from isaaclab.controllers import DifferentialIKControllerCfg, OperationalSpaceControllerCfg
-from isaaclab.managers.action_manager import ActionTerm, ActionTermCfg
+# Controllers used by the task-space action configs
+from isaaclab.controllers import (
+    DifferentialIKControllerCfg,
+    OperationalSpaceControllerCfg,
+)
+
+# --- IMPORTANT: break the circular import here ---
+# We avoid importing ActionTerm at runtime and we import ActionTermCfg
+# defensively. If the managers package isn't fully initialized yet,
+# we fall back to a tiny stub so this module can import.
+try:
+    from isaaclab.managers.action_manager import ActionTermCfg  # runtime import is OK
+except Exception:
+    class ActionTermCfg:  # minimal stub used only during bootstrap
+        pass
+
+# Only use ActionTerm for type hints (no runtime import)
+if TYPE_CHECKING:
+    from isaaclab.managers.action_manager import ActionTerm
+
 from isaaclab.utils import configclass
 
+# Local action term implementations (safe to import)
 from . import (
     binary_joint_actions,
     joint_actions,
@@ -18,9 +42,6 @@ from . import (
     task_space_actions,
 )
 
-##
-# Joint actions.
-##
 
 
 @configclass
